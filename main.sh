@@ -72,5 +72,28 @@ Choose an option:  "
     esac
 }
 
-## Run the menu
-mainmenu
+## Check for interactive vs non-interactive
+if [ -f "$1" ]; then
+  mainmenu
+else
+  cli
+
+# Define cli options
+cli() {
+    while [ True ]; do
+    if [ "$1" = "--lxdmem" ]; then
+      lxdmem
+    elif [ "$1" = "--lxcmigration" ]; then
+      lxcmigration
+    elif [ "$1" = "--lxddt" ]; then
+      lxddt
+    elif [ "$1" = "--cycling" ]; then
+      beta_cycling
+    else
+      echo -ne "
+Please choose a valid option:
+--lxdmem -         Check LXD system health
+--lxcmigration -   Identify migration candidates
+--lxddt -          Get downtime statistics
+--cycling -        Cycle staging instances "
+      exit 1
