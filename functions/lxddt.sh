@@ -18,7 +18,7 @@ echo ""
 echo "Running / Max"
 echo "    $CURRENT_RUNNING_LXC / $MAX_RUNNING_LXC"
 echo ""
-echo "First live container started:"
+echo "First live container started:
 $FIRST_LIVE_CONTAINER_NAME @ $FIRST_LIVE_CONTAINER_TIME UTC"
 echo "Last live container started:
 $LAST_LIVE_CONTAINER_NAME @ $LAST_LIVE_CONTAINER_TIME UTC"

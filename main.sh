@@ -81,6 +81,8 @@ elif [ "$1" = "--lxddt" ]; then
   lxddt
 elif [ "$1" = "--cycling" ]; then
   beta_cycling
+elif [ "$1" = "--lxdmem" ]; then
+  lxdmem
 else
   echo -ne "
 Please choose a valid option:
