@@ -8,6 +8,7 @@
 # v1.1 - Set disk = 0 when variable is empty
 # v1.2 - Dropped lxc exc in favor of nsenter
 # v1.3 - Two optional arguments: SIZE and SHOW. Size defines the maximum container size we accept to migrate, SHOW defines the number of containers listed
+# v1.4 - Invoke the lxc_commands function to make life easier and add 'sudo' to important commands
 #
 
 function lxcmigration {

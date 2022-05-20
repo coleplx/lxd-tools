@@ -80,7 +80,7 @@ if [ -z "$1" ]; then
 elif [ "$1" = "--lxdmem" ]; then
   lxdmem
 elif [ "$1" = "--lxcmigration" ]; then
-  lxcmigration
+  lxcmigration ${@:2}
 elif [ "$1" = "--lxddt" ]; then
   lxddt
 elif [ "$1" = "--cycling" ]; then
@@ -90,6 +90,8 @@ else
 Please choose a valid option:
 --lxdmem          Check LXD system health
 --lxcmigration    Identify migration candidates
+  --size=X (opt)  Container size limit in GiB
+  --show=Y (opt)  Number of candidates to show
 --lxddt           Get downtime statistics
 --cycling         Cycle staging instances 
 "
