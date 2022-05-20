@@ -85,6 +85,12 @@ elif [ "$1" = "--lxddt" ]; then
   lxddt
 elif [ "$1" = "--cycling" ]; then
   beta_cycling
+elif [[ "$1" == "--lxc" ]] && [[ "$2" == "--list" ]]; then
+  source ./function/lxc_commands.sh
+  lxc_list_running
+elif [[ "$1" == "--lxc" ]] && [[ "$2" == "--memory" ]]; then
+  source ./function/lxc_commands.sh
+  for container in $(lxc_list_running); do container_mem_usage $container; done
 else
   echo -ne "
 Please choose a valid option:
