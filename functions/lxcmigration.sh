@@ -59,7 +59,7 @@ function lxcmigration {
     if [ $? == 0 ]; then
       STAGING_RUNNING=1
       # Access the LXD mount namespace to get the value of disk_usage_full
-      STAGING_DISK=$(nsenter -t $(cat /var/snap/lxd/common/lxd.pid) -m cat /var/snap/lxd/common/lxd/storage-pools/default/containers/$STAGING_NAME/rootfs/kinsta/main.conf | grep ^disk_usage_full | cut -d'=' -f2)
+      STAGING_DISK=$(sudo nsenter -t $(cat /var/snap/lxd/common/lxd.pid) -m cat /var/snap/lxd/common/lxd/storage-pools/default/containers/$STAGING_NAME/rootfs/kinsta/main.conf | grep ^disk_usage_full | cut -d'=' -f2)
       if [ "$STAGING_DISK" == "" ]; then 
         STAGING_DISK=0; 
       fi
@@ -68,7 +68,7 @@ function lxcmigration {
     STAGING_RUNNING=0
     fi
 
-    CONTAINER_DISK=$(nsenter -t $(cat /var/snap/lxd/common/lxd.pid) -m cat /var/snap/lxd/common/lxd/storage-pools/default/containers/$container/rootfs/kinsta/main.conf | grep ^disk_usage_full | cut -d'=' -f2)
+    CONTAINER_DISK=$(sudo nsenter -t $(cat /var/snap/lxd/common/lxd.pid) -m cat /var/snap/lxd/common/lxd/storage-pools/default/containers/$container/rootfs/kinsta/main.conf | grep ^disk_usage_full | cut -d'=' -f2)
     if [ "$CONTAINER_DISK" == "" ]; then CONTAINER_DISK=0; fi
     CONTAINER_DISK_GIB=$(echo "$CONTAINER_DISK" | awk '{printf "%0.2f", $1 / 1024 / 1024 /1024}')
 
