@@ -35,10 +35,12 @@ Choose an option:  "
         goback
         ;;        
     3)
+        #lxddt
         lxddt
         goback
         ;;
-    4)  beta_cycling
+    4)  
+        beta_cycling
         goback
         ;;
     0)
@@ -75,14 +77,14 @@ Choose an option:  "
 ## Check for interactive vs non-interactive
 if [ -z "$1" ]; then
   mainmenu
+elif [ "$1" = "--lxdmem" ]; then
+  lxdmem
 elif [ "$1" = "--lxcmigration" ]; then
   lxcmigration
 elif [ "$1" = "--lxddt" ]; then
   lxddt
 elif [ "$1" = "--cycling" ]; then
   beta_cycling
-elif [ "$1" = "--lxdmem" ]; then
-  lxdmem
 else
   echo -ne "
 Please choose a valid option:
