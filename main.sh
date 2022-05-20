@@ -80,16 +80,24 @@ if [ -z "$1" ]; then
 elif [ "$1" = "--lxdmem" ]; then
   lxdmem
 elif [ "$1" = "--lxcmigration" ]; then
-  lxcmigration
+  lxcmigration ${@:2}
 elif [ "$1" = "--lxddt" ]; then
   lxddt
 elif [ "$1" = "--cycling" ]; then
   beta_cycling
+elif [[ "$1" == "--lxc" ]] && [[ "$2" == "--list" ]]; then
+  source ./functions/lxc_commands.sh
+  lxc_list_running
+elif [[ "$1" == "--lxc" ]] && [[ "$2" == "--memory" ]]; then
+  source ./functions/lxc_commands.sh
+  for container in $(lxc_list_running); do container_mem_usage $container; done
 else
   echo -ne "
 Please choose a valid option:
 --lxdmem          Check LXD system health
 --lxcmigration    Identify migration candidates
+  --size=X (opt)  Container size limit in GiB
+  --show=Y (opt)  Number of candidates to show
 --lxddt           Get downtime statistics
 --cycling         Cycle staging instances 
 "
