@@ -14,7 +14,7 @@ function is_sleeping {
     return 1
   else
     sudo nsenter -t $(cat /var/snap/lxd/common/lxd.pid) -m \
-    cat /var/snap/lxd/common/lxd/storage-pools/default/containers/$container/rootfs/kinsta/main.conf | grep sleep |  awk -F '=' '{print $2}'
+    cat /var/snap/lxd/common/lxd/storage-pools/default/containers/$1/rootfs/kinsta/main.conf | grep sleep |  awk -F '=' '{print $2}'
   fi
 }
 
