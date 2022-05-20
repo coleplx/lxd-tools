@@ -14,15 +14,17 @@ function is_sleeping {
     return 1
   else
     sudo nsenter -t $(cat /var/snap/lxd/common/lxd.pid) -m \
-    cat /var/snap/lxd/common/lxd/storage-pools/default/containers/$1/rootfs/kinsta/main.conf | grep sleep |  awk -F '=' '{print $2}'
+    cat /var/snap/lxd/common/lxd/storage-pools/default/containers/$container/rootfs/kinsta/main.conf | grep sleep |  awk -F '=' '{print $2}'
   fi
 }
 
-# Return the memory usage (in bytes) per running container
-function mem_usage_per_container {
-  RUNNING_CONTAINERS=$(lxc_list_running)
-  for container in $RUNNING_CONTAINERS; do
-    MEM_IN_BYTES=$(cat /sys/fs/cgroup/memory/lxc.payload.${container}/memory.usage_in_bytes)
-    echo $MEM_IN_BYTES $container
-  done
+# Return the memory usage (in bytes) and container name
+function container_mem_usage {
+  if [ -z $1 ]; then
+    echo "Missing argument"
+    return 1
+  else
+    MEM_IN_BYTES=$(cat /sys/fs/cgroup/memory/lxc.payload.${1}/memory.usage_in_bytes)
+    echo $MEM_IN_BYTES $1
+  fi
 }
