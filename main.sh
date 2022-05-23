@@ -91,6 +91,9 @@ elif [[ "$1" == "--lxc" ]] && [[ "$2" == "--list" ]]; then
 elif [[ "$1" == "--lxc" ]] && [[ "$2" == "--memory" ]]; then
   source ./functions/lxc_commands.sh
   for container in $(lxc_list_running); do container_mem_usage $container; done
+elif [[ "$1" == "--lxc" ]] && [[ "$2" == "--exec" ]]; then
+  source ./functions/lxc_commands.sh
+  lxcexec ${@:3}
 else
   echo -ne "
 Please choose a valid option:
