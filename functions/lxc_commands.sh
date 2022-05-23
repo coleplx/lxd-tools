@@ -61,8 +61,8 @@ function lxcexec {
   operation_id_simple=$(echo ${operation_id} | rev | cut -d'/' -f1 | rev)
   operation_result=$(curl -s --unix-socket /var/snap/lxd/common/lxd/unix.socket lxd${operation_id}/wait?timeout=60)
 
-  get_stdout ${staging} ${operation_id_simple}
-  get_stderr ${staging} ${operation_id_simple}
+  get_stdout ${container} ${operation_id_simple}
+  get_stderr ${container} ${operation_id_simple}
 
   rm -f "$temp_file"
 }
