@@ -53,8 +53,8 @@ function get_operation_status {
 }
 
 function lxcexec { 
-  container=$1
-  timeout=$2
+  timeout=$1
+  container=$2
   command="$(echo "${@:3}" | sed -e "s/\\\\/\\\\\\\\/g")"
   command2='{ "command": [ "bash", "-c", "'$command'"  ], "record-output": true }'
   temp_file="/tmp/json_$RANDOM"

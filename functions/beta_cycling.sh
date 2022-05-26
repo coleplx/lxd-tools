@@ -17,7 +17,8 @@ function beta_cycling {
       fi
       PHP_VERSION=$(sudo nsenter -t "$(cat /var/snap/lxd/common/lxd.pid)" -m cat /var/snap/lxd/common/lxd/storage-pools/default/containers/"$staging"/rootfs/etc/nginx/sites/"$STAGING_HOST".conf | grep -o /php.*-fpm | awk -F '/' '{ print $2; }');
       
-      lxcexec "${staging}" 25 "timeout 30 systemctl restart mariadb $PHP_VERSION"
+      # lxcexec timeout container "command"
+      lxcexec 25 "${staging}" "timeout 30 systemctl restart mariadb $PHP_VERSION"
       operation_status=$?
 
       # Check the operation status - If it is still running, it's probably stuck and will disappear after the "timeout 30" is hit
