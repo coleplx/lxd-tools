@@ -49,7 +49,7 @@ function get_stderr {
 }
 function get_operation_status {
   parse_log="$1"
-  echo "$parse_log" | sed -e 's/,/\n/g' | grep status_code | tail -n1 | cut -d':' -f2
+  echo "$parse_log" | jq .status_code
 }
 
 function lxcexec { 

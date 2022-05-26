@@ -11,17 +11,17 @@ function lxdmem {
   # Get system stats only once
   MEMINFO=$(cat /proc/meminfo)
   ARC_INFO=$(cat /proc/spl/kstat/zfs/arcstats)
-  ARC_HITS=$(echo "$ARC_INFO" | egrep ^hits | awk '{print $3}')
-  ARC_MISSES=$(echo "$ARC_INFO" | egrep ^misses | awk '{print $3}')
-  ARC_HITRATIO=$(echo $ARC_HITS $ARC_MISSES | awk '{print $1 / ($1+$2) * 100}')
-  OS_USERS=$(for i in $(cat /etc/passwd | cut -d':' -f1); do echo $i; done | sed -e ':a;N;$!ba;s/\n/|/g')
-  LOAD_AVG=$(uptime  | egrep -o "load average.*" | awk '{print $3 " " $4 " " $5}')
+  ARC_HITS=$(echo "$ARC_INFO" | grep -E ^hits | awk '{print $3}')
+  ARC_MISSES=$(echo "$ARC_INFO" | grep -E ^misses | awk '{print $3}')
+  ARC_HITRATIO=$(echo "$ARC_HITS" "$ARC_MISSES" | awk '{print $1 / ($1+$2) * 100}')
+  OS_USERS=$(for i in $(cat /etc/passwd | cut -d':' -f1); do echo "$i"; done | sed -e ':a;N;$!ba;s/\n/|/g')
+  LOAD_AVG=$(uptime | grep -Eo "load average.*" | awk '{print $3 " " $4 " " $5}')
 
   # This is 15~25x faster than "lxc list --fast | grep RUNNING"
   TOTAL_CONTAINERS=$(grep LXD_META_NUMBER_OF_RUNNING_CONTAINERS /var/log/syslog{.1,} | tail -1 | rev | cut -d' ' -f1 | rev)
   RUNNING_CONTAINERS=$(lxc_list_running)
   SUM_RUNNING_CONTAINERS=$(echo "$RUNNING_CONTAINERS" | wc -l)
-  MEMORY_PER_CONTAINER=$(for container in $RUNNING_CONTAINERS; do container_mem_usage $container; done)
+  MEMORY_PER_CONTAINER=$(for container in $RUNNING_CONTAINERS; do container_mem_usage "$container"; done)
 
   # Available memory
   MEMFREE=$(echo "$MEMINFO" | grep MemFree | awk '{print $2 / 1024 / 1024}')
@@ -32,7 +32,7 @@ function lxdmem {
   ARC_MAXSIZE=$(echo "$ARC_INFO" | grep ^c_max | awk '{print $3 / 1024 / 1024 / 1024 " GiB"}')
   CONTAINERS_USAGE=$(echo "$MEMORY_PER_CONTAINER" | awk '{s+=$1} END {print s / 1024 / 1024 / 1024}')
   CONTAINER_TOP_MEM_USAGE=$(echo "$MEMORY_PER_CONTAINER" | sort -nr | head -n5 | awk '{print $2 " " $1 / 1024 / 1024 /1024 " GiB"}')
-  LXD_USERS_MEM_USAGE=$(ps -axo size,pid,user:20,command --sort -size | awk '{print $3 " " $0}' | egrep "^($OS_USERS)" | awk '{ hr=$2/1024 ; printf("%13.2f Mb ",hr) } { for ( x=4 ; x<=NF ; x++ ) { printf("%s ",$x) } print "" }' |    cut -d "" -f2 | cut -d "-" -f1  | head  -n 20 | awk '{print $1}' | awk '{s+=$1} END {print s / 1024}' | awk '{s+=$1} END {print s}')
+  LXD_USERS_MEM_USAGE=$(ps -axo size,pid,user:20,command --sort -size | awk '{print $3 " " $0}' | grep -E "^($OS_USERS)" | awk '{ hr=$2/1024 ; printf("%13.2f Mb ",hr) } { for ( x=4 ; x<=NF ; x++ ) { printf("%s ",$x) } print "" }' |    cut -d "" -f2 | cut -d "-" -f1  | head  -n 20 | awk '{print $1}' | awk '{s+=$1} END {print s / 1024}' | awk '{s+=$1} END {print s}')
 
   # Max memory limits
   MEMTOTAL=$(echo "$MEMINFO" | grep MemTotal | awk '{print $2 / 1024 / 1024}')
@@ -50,27 +50,27 @@ function lxdmem {
   PHPFPM_MEM="0"
   PHPCLI_MEM="0"
   FILEBEAT_MEM="0"
-  if [ -n "$(echo "$RUNNING_PC" | egrep -o 'mariadb|mysql')" ]; then
-    MYSQL_MEM=$(echo "$RUNNING_PC" | egrep "mariadb|mysql" | awk '{sum+=$1;}END{print sum/1024/1024;}')
+  if [ -n "$(echo "$RUNNING_PC" | grep -Eo 'mariadb|mysql')" ]; then
+    MYSQL_MEM=$(echo "$RUNNING_PC" | grep -E "mariadb|mysql" | awk '{sum+=$1;}END{print sum/1024/1024;}')
   fi
-  if [ -n "$(echo "$RUNNING_PC" | egrep -o 'nginx')" ]; then
+  if [ -n "$(echo "$RUNNING_PC" | grep -Eo 'nginx')" ]; then
     NGINX_MEM=$(echo "$RUNNING_PC" | grep nginx | awk '{sum+=$1;}END{print sum/1024/1024;}')
   fi
-  if [ -n "$(echo "$RUNNING_PC" | egrep -o 'redis-server')" ]; then
+  if [ -n "$(echo "$RUNNING_PC" | grep -Eo 'redis-server')" ]; then
     REDIS_MEM=$(echo "$RUNNING_PC" | grep redis-server | awk '{sum+=$1;}END{print sum/1024/1024;}')
   fi
-  if [ -n "$(echo "$RUNNING_PC" | egrep -o 'php-fpm')" ]; then
+  if [ -n "$(echo "$RUNNING_PC" | grep -Eo 'php-fpm')" ]; then
     PHPFPM_MEM=$(echo "$RUNNING_PC" | grep php-fpm | awk '{sum+=$1;}END{print sum/1024/1024;}')
   fi
-  if [ -n "$(echo "$RUNNING_PC" | egrep -o 'filebeat')" ]; then
+  if [ -n "$(echo "$RUNNING_PC" | grep -Eo 'filebeat')" ]; then
     FILEBEAT_MEM=$(echo "$RUNNING_PC" | grep filebeat | awk '{sum+=$1;}END{print sum/1024/1024;}')
   fi
-  if [ -n "$(echo "$RUNNING_PC" | egrep -o 'php ')" ]; then
+  if [ -n "$(echo "$RUNNING_PC" | grep -Eo 'php ')" ]; then
     PHPCLI_MEM=$(echo "$RUNNING_PC" | grep 'php ' | awk '{sum+=$1;}END{print sum/1024/1024;}')
   fi
 
   # Sum all known memory usage
-  TOTAL_KNOWN_MEMORY_USAGE=$(echo $ARC_USAGE $CONTAINERS_USAGE $LXD_USERS_MEM_USAGE $MEMBUFFER $MEMCACHED $MEMSLAB | awk '{print $1 + $2 + $3 + $4 + $5}')
+  TOTAL_KNOWN_MEMORY_USAGE=$(echo "$ARC_USAGE $CONTAINERS_USAGE $LXD_USERS_MEM_USAGE $MEMBUFFER $MEMCACHED $MEMSLAB" | awk '{print $1 + $2 + $3 + $4 + $5}')
 
   echo ""
   echo "------ System Info ------"

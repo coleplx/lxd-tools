@@ -8,11 +8,11 @@ function lxddt {
   MAX_RUNNING_LXC=$(grep LXD_META_NUMBER_OF_RUNNING_CONTAINERS /var/log/syslog{.1,} | tail -1 | rev | cut -d' ' -f1 | rev)
   CURRENT_RUNNING_LXC=$(lxc_list_running | wc -l)
 
-  FIRST_LIVE_CONTAINER_NAME=$(sudo cat /var/snap/lxd/common/lxd/logs/lxd.log | grep 'Started container' | grep -v '\-staging\-' | head -n1 | egrep -o "(instance|name)=.*" | cut -d'=' -f2 | cut -d' ' -f1)
-  FIRST_LIVE_CONTAINER_TIME=$(sudo cat /var/snap/lxd/common/lxd/logs/lxd.log | grep 'Started container' | grep "$FIRST_LIVE_CONTAINER_NAME" | head -n1 | cut -d' ' -f1 | egrep -o '[0-9]+:[0-9]+')
+  FIRST_LIVE_CONTAINER_NAME=$(sudo cat /var/snap/lxd/common/lxd/logs/lxd.log | grep 'Started container' | grep -v '\-staging\-' | head -n1 | grep -Eo "(instance|name)=.*" | cut -d'=' -f2 | cut -d' ' -f1)
+  FIRST_LIVE_CONTAINER_TIME=$(sudo cat /var/snap/lxd/common/lxd/logs/lxd.log | grep 'Started container' | grep "$FIRST_LIVE_CONTAINER_NAME" | head -n1 | cut -d' ' -f1 | grep -Eo '[0-9]+:[0-9]+')
 
-  LAST_LIVE_CONTAINER_NAME=$(sudo cat /var/snap/lxd/common/lxd/logs/lxd.log | grep 'Started container' | grep -v '\-staging\-' | tail -n1 | egrep -o "(instance|name)=.*" | cut -d'=' -f2 | cut -d' ' -f1)
-  LAST_LIVE_CONTAINER_TIME=$(sudo cat /var/snap/lxd/common/lxd/logs/lxd.log | grep 'Started container' | grep "$LAST_LIVE_CONTAINER_NAME" | tail -n1 | cut -d' ' -f1 | egrep -o '[0-9]+:[0-9]+')
+  LAST_LIVE_CONTAINER_NAME=$(sudo cat /var/snap/lxd/common/lxd/logs/lxd.log | grep 'Started container' | grep -v '\-staging\-' | tail -n1 | grep -Eo "(instance|name)=.*" | cut -d'=' -f2 | cut -d' ' -f1)
+  LAST_LIVE_CONTAINER_TIME=$(sudo cat /var/snap/lxd/common/lxd/logs/lxd.log | grep 'Started container' | grep "$LAST_LIVE_CONTAINER_NAME" | tail -n1 | cut -d' ' -f1 | grep -Eo '[0-9]+:[0-9]+')
 
   echo ""
   echo "Time now: $(date '+%H:%M') UTC"

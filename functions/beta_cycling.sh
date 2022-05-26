@@ -23,7 +23,7 @@ function beta_cycling {
 
       # Check the operation status - If it is still running, it's probably stuck and will disappear after the "timeout 30" is hit
       if [[ $operation_status == 103 ]]; then
-        echo "$staging - Cycling timed-out after 30 seconds. Skipping to the next..."
+        echo "$staging - Cycling timed-out after 25 seconds. Skipping to the next..."
       else
         echo "$staging cycled."
       fi

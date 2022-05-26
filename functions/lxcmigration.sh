@@ -1,5 +1,4 @@
 #!/bin/bash
-# ./lxcmigration.sh
 # v0.1 - Initial Version
 # v0.2 - Fix problem with small containers (<1gb) being excluded from the listing
 # v0.3 - Drop zfs list in favor of /kinsta/main.conf
@@ -9,6 +8,7 @@
 # v1.2 - Dropped lxc exc in favor of nsenter
 # v1.3 - Two optional arguments: SIZE and SHOW. Size defines the maximum container size we accept to migrate, SHOW defines the number of containers listed
 # v1.4 - Invoke the lxc_commands function to make life easier and add 'sudo' to important commands
+# v1.5 - Shellcheck improvements
 #
 
 function lxcmigration {
@@ -16,9 +16,10 @@ function lxcmigration {
 
   RUNNING_CONTAINERS=$(lxc_list_running)
 
-  GET_OPTS=$(getopt -o '' --long size:,show: -n 'finish' -- "$@")
-
-  if [ $? != 0 ]; then echo "Failed to parse options... exiting." >&2 ; exit 1 ; fi
+  if ! GET_OPTS=$(getopt -o '' --long size:,show: -n 'finish' -- "$@"); then 
+    echo "Failed to parse options... exiting." >&2
+    exit 1
+  fi
 
   eval set -- "$GET_OPTS"
 
@@ -44,23 +45,23 @@ function lxcmigration {
       esac
   done
 
-  if [ -z $DISK_LIMIT ]; then
+  if [ -z "$DISK_LIMIT" ]; then
     DISK_LIMIT=7516192768 # 7 GiB
   fi
 
-  if [ -z $LIST_SIZE ]; then
+  if [ -z "$LIST_SIZE" ]; then
     LIST_SIZE=200
   fi
 
 
   container_list=$(for container in $(echo "$RUNNING_CONTAINERS" | grep -v '\-staging\-' ); do
-    SITE_NAME=$(echo $container | cut -d'-' -f2)
+    SITE_NAME=$(echo "$container" | cut -d'-' -f2)
     # Check if there is a staging running
     STAGING_NAME=$(echo "$RUNNING_CONTAINERS" | grep "\-staging\-$SITE_NAME")
     if [ $? == 0 ]; then
       STAGING_RUNNING=1
       # Access the LXD mount namespace to get the value of disk_usage_full
-      STAGING_DISK=$(sudo nsenter -t $(cat /var/snap/lxd/common/lxd.pid) -m cat /var/snap/lxd/common/lxd/storage-pools/default/containers/$STAGING_NAME/rootfs/kinsta/main.conf | grep ^disk_usage_full | cut -d'=' -f2)
+      STAGING_DISK=$(sudo nsenter -t "$(cat /var/snap/lxd/common/lxd.pid)" -m cat /var/snap/lxd/common/lxd/storage-pools/default/containers/"$STAGING_NAME"/rootfs/kinsta/main.conf | grep ^disk_usage_full | cut -d'=' -f2)
       if [ "$STAGING_DISK" == "" ]; then 
         STAGING_DISK=0; 
       fi
@@ -69,12 +70,12 @@ function lxcmigration {
     STAGING_RUNNING=0
     fi
 
-    CONTAINER_DISK=$(sudo nsenter -t $(cat /var/snap/lxd/common/lxd.pid) -m cat /var/snap/lxd/common/lxd/storage-pools/default/containers/$container/rootfs/kinsta/main.conf | grep ^disk_usage_full | cut -d'=' -f2)
+    CONTAINER_DISK=$(sudo nsenter -t "$(cat /var/snap/lxd/common/lxd.pid)" -m cat /var/snap/lxd/common/lxd/storage-pools/default/containers/"$container"/rootfs/kinsta/main.conf | grep ^disk_usage_full | cut -d'=' -f2)
     if [ "$CONTAINER_DISK" == "" ]; then CONTAINER_DISK=0; fi
     CONTAINER_DISK_GIB=$(echo "$CONTAINER_DISK" | awk '{printf "%0.2f", $1 / 1024 / 1024 /1024}')
 
     if [ $CONTAINER_DISK -lt $DISK_LIMIT ]; then
-      CONTAINER_MEMORY=$(cat /sys/fs/cgroup/memory/lxc.payload.${container}/memory.usage_in_bytes | awk '{print $1 / 1024 / 1024 / 1024}')
+      CONTAINER_MEMORY=$(cat /sys/fs/cgroup/memory/lxc.payload."${container}"/memory.usage_in_bytes | awk '{print $1 / 1024 / 1024 / 1024}')
       if [ $STAGING_RUNNING == 1 ]; then
         if [ $STAGING_DISK -lt $DISK_LIMIT ]; then
           echo "$container $CONTAINER_MEMORY $CONTAINER_DISK_GIB $STAGING_DISK_GIB"
