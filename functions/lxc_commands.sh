@@ -54,7 +54,8 @@ function get_operation_status {
 
 function lxcexec { 
   container=$1
-  command="$(echo "${@:2}" | sed -e "s/\\\\/\\\\\\\\/g")"
+  timeout=$2
+  command="$(echo "${@:3}" | sed -e "s/\\\\/\\\\\\\\/g")"
   command2='{ "command": [ "bash", "-c", "'$command'"  ], "record-output": true }'
   temp_file="/tmp/json_$RANDOM"
   echo "$command2" > $temp_file
@@ -65,8 +66,8 @@ function lxcexec {
   operation_id=$(echo "$operation_output" | jq .operation | cut -d'"' -f2)
   operation_id_simple=$(echo "$operation_output" | jq .metadata.id | cut -d'"' -f2)
 
-  # The command will timeout and be canceled in 60 seconds
-  operation_result=$(curl -s --unix-socket /var/snap/lxd/common/lxd/unix.socket lxd"${operation_id}"/wait?timeout=60)
+  # The command will timeout and be canceled in {{ timeout }} seconds
+  operation_result=$(curl -s --unix-socket /var/snap/lxd/common/lxd/unix.socket lxd"${operation_id}"/wait?timeout="${timeout}")
   operation_status=$(get_operation_status "$operation_result")
   
   get_stdout "${container}" "${operation_id_simple}"
