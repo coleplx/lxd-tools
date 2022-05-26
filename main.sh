@@ -93,10 +93,11 @@ elif [[ "$1" == "--lxc" ]] && [[ "$2" == "--memory" ]]; then
   for container in $(lxc_list_running); do container_mem_usage $container; done
 elif [[ "$1" == "--lxc" ]] && [[ "$2" == "--exec" ]]; then
   source ./functions/lxc_commands.sh
-  if [[ "$3" != "--timeout" ]]; then
-    lxcexec 60 ${@:3}
+  if ! echo "$3" | grep -qE "\-\-timeout=[0-9]+"; then
+    lxcexec 60 "${@:3}"
   else
-    lxcexec ${@:4}
+    timeout=$(echo "$3" | cut -d'=' -f2)
+    lxcexec "$timeout" "${@:4}"
   fi
 else
   echo -ne "
