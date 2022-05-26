@@ -47,22 +47,34 @@ function get_stderr {
   id_operation=$2
   curl -s --unix-socket /var/snap/lxd/common/lxd/unix.socket "lxd/1.0/instances/${id_container}/logs/exec_${id_operation}.stderr"
 }
+function get_operation_status {
+  parse_log="$1"
+  echo "$parse_log" | sed -e 's/,/\n/g' | grep status_code | tail -n1 | cut -d':' -f2
+}
+
 function lxcexec { 
   container=$1
-  command="$(echo ${@:2} | sed -e "s/\\\\/\\\\\\\\/g")"
-  command2=$(echo '{ "command": [ "bash", "-c", "'$command'"  ], "record-output": true }')
+  command="$(echo "${@:2}" | sed -e "s/\\\\/\\\\\\\\/g")"
+  command2='{ "command": [ "bash", "-c", "'$command'"  ], "record-output": true }'
   temp_file="/tmp/json_$RANDOM"
   echo "$command2" > $temp_file
+
   # The exec command is sent here and the API immediately returns an operation ID
   # We need this operation ID to actually check the command output
-  operation_id=$(curl -sX POST --unix-socket /var/snap/lxd/common/lxd/unix.socket "a/1.0/instances/${container}/exec" -d @$temp_file --header "Content-Type: application/json" | sed -e 's/,/\n/g' | grep operation | cut -d'"' -f4)
+  operation_output=$(curl -sX POST --unix-socket /var/snap/lxd/common/lxd/unix.socket "a/1.0/instances/${container}/exec" -d @$temp_file --header "Content-Type: application/json")
+  operation_id=$(echo "$operation_output" | jq .operation | cut -d'"' -f2)
+  operation_id_simple=$(echo "$operation_output" | jq .metadata.id | cut -d'"' -f2)
 
   # The command will timeout and be canceled in 60 seconds
-  operation_id_simple=$(echo "${operation_id}" | rev | cut -d'/' -f1 | rev)
   operation_result=$(curl -s --unix-socket /var/snap/lxd/common/lxd/unix.socket lxd"${operation_id}"/wait?timeout=60)
-
+  operation_status=$(get_operation_status "$operation_result")
+  
   get_stdout "${container}" "${operation_id_simple}"
   get_stderr "${container}" "${operation_id_simple}"
 
   rm -f "$temp_file"
+
+  if [[ $operation_status == 103 ]]; then
+    return 103
+  fi
 }
